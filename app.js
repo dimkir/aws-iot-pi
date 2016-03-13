@@ -46,10 +46,12 @@ var alreadyInitialized = false;
 var display = null;
 var thingShadows = null;
 var myThingName = null;
+var startOptions = {};
 
-function __START(thingName){
+function __START(thingName, options){
 
     myThingName = thingName;
+    startOptions = options;
 
     thingShadows = awsIot.thingShadow({
        keyPath: './certs/'+ myThingName + '-private.pem.key',
@@ -122,7 +124,8 @@ function initOtherThreads(){
 
       loop.start({
         publishFunction: publishFunction,
-        displayStringFunction : display.displayMetricsMessage
+        displayStringFunction : display.displayMetricsMessage,
+        metric_loop_delay : startOptions.metric_loop_delay // can be undefined
        });
 }
 

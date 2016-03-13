@@ -29,6 +29,7 @@
     "aws-iot-device-sdk": "^1.0.11",
     "blessed": "^0.1.81",
     "colors": "^1.1.2",
+    "lodash": "^4.6.1",
     "perlin-noise": "git+https://github.com/andrewrk/node-perlin-noise.git",
     "sprintf-js": "^1.0.3",
     "winston": "^2.2.0"

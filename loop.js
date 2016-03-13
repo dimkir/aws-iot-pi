@@ -16,6 +16,8 @@ var columns;
 var noise;
 var noise_index = 0;
 
+var metric_loop_delay = 3000;
+
 var PROPERTY_OFFSETS = {
   a : 0,
   b: 400,
@@ -35,9 +37,12 @@ function __START_LOOP(options){
     displayStringFunction = options.displayStringFunction;
     if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
 
+    if ( options.metric_loop_delay ){
+      metric_loop_delay = options.metric_loop_delay;
+    }
 
     noise = perlin.generatePerlinNoise(1000, 1, { amplitude: 0.5});
-    setInterval(loop, 3000);
+    setInterval(loop, metric_loop_delay);
 }
 
 function setupWinston(){
