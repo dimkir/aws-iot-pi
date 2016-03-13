@@ -35,6 +35,17 @@ PROPERTIES = {
    _led3 : null
 };
 
+
+
+
+preparePropertyNames().forEach(function(prop){
+   PROPERTIES[prop] = Math.round(Math.random() * 100);
+});
+
+
+
+
+
 LAST_CLIENT_TOKEN = null;
 
 // --------------------------------------------------------
@@ -236,4 +247,39 @@ function setupDisplay(){
       }
 
   };
+}
+
+
+
+function preparePropertyNames(){
+  var freq = ['08','09','18','21','26'];
+  
+  var readingNames = [];
+
+  freq.forEach(function(frq){
+
+      readingNames.push(sprintf('pow_up_%s',frq));
+      readingNames.push(sprintf('pow_dw_%s',frq));
+
+      readingNames.push(sprintf('vsc_%s',frq));
+
+
+      readingNames.push(sprintf('osc_up_%s',frq));
+      readingNames.push(sprintf('osc_dw_%s',frq));
+
+
+      // Boolean values
+      readingNames.push(sprintf('sht_%s',frq));
+
+      readingNames.push(sprintf('swc_up_%s',frq));
+
+
+      // Interactive values
+      readingNames.push(sprintf('mgn_up_%s',frq));
+      readingNames.push(sprintf('mgn_dw_%s',frq));
+
+
+  });
+
+  return readingNames;
 }

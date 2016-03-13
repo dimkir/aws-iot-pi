@@ -3,8 +3,10 @@
 // ========
 "use strict";
 var sprintf = require('sprintf-js').sprintf;
+var vsprintf = require('sprintf-js').vsprintf;
 var perlin = require('perlin-noise');
 var winston = require('winston');
+var _ = require('lodash');
 
 module.exports = {
 
@@ -61,14 +63,43 @@ function setupWinston(){
 }
 
 function loop(){
-  // PROPERTIES.a =  rand();
-  // PROPERTIES.b =  rand();
-
 
   refreshMetrics();
   publishFunction(); // this will republish full project
-  var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
-  displayStringFunction(msg);
+  // var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
+
+ var filterTrueFalse = function(v){  return v ? 'true' : 'false' };
+
+ // how to display all the properties... ?
+ var propertiesToDisplay = {
+   'sht_09':    {   filter: filterTrueFalse   },
+   'pow_up_09': {},
+   'pow_dw_09': {},
+   'vsc_09' :   {}
+ };
+
+ var format_string = '';
+ var elements = [];
+
+ _.forOwn(propertiesToDisplay, function(opt, key){
+
+    format_string +=  '\t' + key + ': %5s';
+
+    elements.push( opt.filter ?  opt.filter(PROPERTIES[key]) : PROPERTIES[key]);
+ });
+ // displayStringFunction(format_string);
+ var msg = vsprintf(format_string, elements);
+ // var msg = sprintf("%8s %4d %4d %4d",
+ //   PROPERTIES.sht_09 ? 'true' : 'false',
+ //   PROPERTIES.pow_up_09,
+ //   PROPERTIES.pow_dw_09,
+ //   PROPERTIES.vsc_09
+ //
+ // );
+
+
+ displayStringFunction(msg);
+  // displayStringFunction(JSON.stringify(PROPERTIES));
   winston.info(msg);
 
 }
@@ -76,9 +107,29 @@ function loop(){
 
 function refreshMetrics(){
 
+
+    // PROPERTIES.a =  rand();
+    // PROPERTIES.b =  rand();
+    _.forOwn(PROPERTIES, function(value, key){
+      if ( _.startsWith(key,'_') ) return; // we skip the Interactive properties
+
+      PROPERTIES[key] = rand();
+
+
+      // BOOLEAN PROPERTIES
+      if ( _.startsWith(key,'swc_up_')
+        || _.startsWith(key, 'sht_')
+      ) {
+         PROPERTIES[key] = rand_boolean();
+      }
+
+    });
+
+
     PROPERTIES.a =  Math.round(100*noise[nextOffset('a')]);
     PROPERTIES.b =  Math.round(100*noise[nextOffset('b')]);
     PROPERTIES.c =  Math.round(100*noise[nextOffset('c')]);
+
 }
 
 
@@ -95,4 +146,8 @@ function nextOffset(property){
 function rand(){
 
   return Math.round(Math.random() * 1000);
+}
+
+function rand_boolean(){
+  return Math.random() > 0.5;
 }
