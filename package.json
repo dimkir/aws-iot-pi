@@ -1,0 +1,36 @@
+{
+  "name": "aws-iot-pi",
+  "version": "1.0.0",
+  "description": "Scaffolding for AWS IoT Javascript application",
+  "main": "pi.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dimkir/aws-iot-pi.git"
+  },
+  "keywords": [
+    "aws",
+    "iot",
+    "aws",
+    "iot",
+    "raspberry",
+    "raspberrypi",
+    "nodejs"
+  ],
+  "author": "Dimitry",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dimkir/aws-iot-pi/issues"
+  },
+  "homepage": "https://github.com/dimkir/aws-iot-pi#readme",
+  "dependencies": {
+    "aws-iot-device-sdk": "^1.0.11",
+    "blessed": "^0.1.81",
+    "colors": "^1.1.2",
+    "perlin-noise": "git+https://github.com/andrewrk/node-perlin-noise.git",
+    "sprintf-js": "^1.0.3",
+    "winston": "^2.2.0"
+  }
+}

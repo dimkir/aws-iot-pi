@@ -4,3 +4,4 @@ certs/*
 logs/*
 !logs/.gitkeep
 
+node_modules/
