@@ -23,12 +23,19 @@ var PROPERTY_OFFSETS = {
 };
 
 var publishFunction  = null;
+var displayStringFunction = null;
 
 
 function __START_LOOP(options){
     setupWinston();
+
     publishFunction = options.publishFunction;
     if ( undefined === publishFunction ) throw 'Please specify options.publishFunction when calling start()';
+
+    displayStringFunction = options.displayStringFunction;
+    if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
+
+
     noise = perlin.generatePerlinNoise(1000, 1, { amplitude: 0.5});
     setInterval(loop, 3000);
 }
@@ -44,7 +51,7 @@ function setupWinston(){
       //     timestamp: true
       //   }
       // );
-      
+
     //  winston.remove(winston.transports.Console);
 }
 
@@ -55,7 +62,9 @@ function loop(){
 
   refreshMetrics();
   publishFunction(); // this will republish full project
-  winston.info(sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c));
+  var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
+  displayStringFunction(msg);
+  winston.info(msg);
 
 }
 

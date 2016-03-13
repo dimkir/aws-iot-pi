@@ -11,11 +11,14 @@ module.exports = {
 };
 
 var publishFunction = null;
+var displayStringFunction  = null;
 
+function __REGISTER_HANDLERS(thingShadows, options){
+    if ( undefined === options.publishFunction ) throw 'Must specify function as second argument';
+    publishFunction = options.publishFunction;
 
-function __REGISTER_HANDLERS(thingShadows, pubFunction){
-    if ( undefined === pubFunction ) throw 'Must specify function as second argument';
-    publishFunction = pubFunction;
+    displayStringFunction = options.displayStringFunction;
+    if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
 
 
     winston.add(
@@ -70,7 +73,8 @@ function on_delta(thingName, stateObject){
   //             tools.prettyfy(stateObject)
   var timestamp = new Date().getTime();
   var msg  = sprintf('*** [%d] received delta on [%s]', stateObject.timestamp, thingName);
-  console.log(colors.red(msg));
+  //console.log(colors.red(msg));
+  displayStringFunction(msg);
   winston.info(msg);
   winston.info(tools.prettyfy(stateObject));
 
@@ -81,7 +85,8 @@ function on_delta(thingName, stateObject){
    for(var prop in delta){
      if ( !delta.hasOwnProperty(prop) ) {  winston.info(sprintf('Inside delta found not-own-property [%s]',prop));  continue; }
      var msg_update = sprintf('[%s] = [%s]',  prop, delta[prop] )
-     console.log("From delta we got property to update " + colors.blue(msg_update));
+     //  console.log("From delta we got property to update " + colors.blue(msg_update));
+     displayStringFunction(sprintf("Delta: %s",  msg_update));
      winston.info("From delta we got propety to update " + msg_update);
      // own property
      if ( 0 == prop.indexOf('_')){
