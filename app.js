@@ -1,24 +1,20 @@
+
 var awsIot = require('aws-iot-device-sdk');
 var tools = require('./tools');
+
 // var publish = require('./publish');
 var eventHandlers = require('./eventHandlers');
 var loop  = require('./loop');
 var winston = require('winston');
 var sprintf = require('sprintf-js').sprintf;
 
-var blessed = require('blessed');
 
-var screenUtils = require('./screenUtils');
-
+var disp = require('./utils/display');
 
 module.exports = {
     start : __START
 }
 
-var displayStringFunction = function(s){
-   boxConsole.addLine(0, s);
-   screen.render();
-}
 
 
 // --------------- GLOBAL VARS -------------------
@@ -35,12 +31,6 @@ PROPERTIES = {
    _led3 : null
 };
 
-
-
-
-preparePropertyNames().forEach(function(prop){
-   PROPERTIES[prop] = Math.round(Math.random() * 100);
-});
 
 
 
@@ -64,6 +54,15 @@ function __START(thingName, options){
     myThingName = thingName;
     startOptions = options;
 
+
+    display = disp.setupDisplay(thingName);
+
+
+    preparePropertyNames().forEach(function(prop){
+       PROPERTIES[prop] = Math.round(Math.random() * 100);
+    });
+
+
     thingShadows = awsIot.thingShadow({
        keyPath: './certs/'+ myThingName + '-private.pem.key',
       certPath: './certs/'+ myThingName +  '-certificate.pem.crt',
@@ -71,11 +70,6 @@ function __START(thingName, options){
       clientId: myThingName,
         region: 'eu-west-1'
     });
-
-
-
-
-    display = setupDisplay();
 
     // This will be called upon each connection
     thingShadows.on('connect', onConnect);
@@ -180,80 +174,10 @@ function publishState(thingShadows, myThingName){
 
 
 
-function setupDisplay(){
-
-  var screen = blessed.screen({
-    smartCSR : true
-  });
-
-  screen.title = sprintf("Virtual RPi device [%s]", myThingName);
-  screen.key(['escape','q','C-c'], function(ch, key){
-      return process.exit(0);
-  });
-
-  var boxWithMetrics = screenUtils.boxWithMetricsStream();
-  screen.append(boxWithMetrics);
-
-  var boxWithEvents = screenUtils.boxWithEventsCreate();
-  screen.append(boxWithEvents);
-
-  var boxConsole = screenUtils.boxConsoleCreate();
-  screen.append(boxConsole);
-
-  var boxState  = screenUtils.boxStateCreate();
-  screen.append(boxState);
-
-  //box.focus();
-  screen.render();
-
-  var log = function(s){
-    // console.log(boxConsole);
-    // winston.log(boxConsole);
-    // process.exit(2);
-    boxConsole.insertLine(0, s);
-    screen.render();
-  };
-  return {
-      displayMetricsMessage : function(s){
-        boxWithMetrics.insertLine(0, s);
-        screen.render();
-      },
-      displayConsoleMessage: log,
-      log: log,
-      displayEventsMessage: function(s){
-        boxWithEvents.insertLine(0,s);
-        screen.render();
-      },
-      displayState : function(state){
-
-        var wrapColor = function(str_on_off){
-          if ( "off" == str_on_off){
-            return sprintf("{red-bg}%4s{/red-bg}", str_on_off);
-          }
-          else if ( "on" == str_on_off ){
-            return sprintf("{green-bg}%4s{/green-bg}",str_on_off);
-          }
-          else{
-            return str_on_off;
-          }
-        }
-
-        boxState.setContent(sprintf("LED-1 [%s]  \t   LED-2 [%s]     \t    LED-3  [%s]",
-          wrapColor(state._led1),
-          wrapColor(state._led2),
-          wrapColor(state._led3)
-        ));
-        screen.render();
-      }
-
-  };
-}
-
-
 
 function preparePropertyNames(){
   var freq = ['08','09','18','21','26'];
-  
+
   var readingNames = [];
 
   freq.forEach(function(frq){
@@ -275,8 +199,8 @@ function preparePropertyNames(){
 
 
       // Interactive values
-      readingNames.push(sprintf('mgn_up_%s',frq));
-      readingNames.push(sprintf('mgn_dw_%s',frq));
+      readingNames.push(sprintf('_mgn_up_%s',frq));
+      readingNames.push(sprintf('_mgn_dw_%s',frq));
 
 
   });

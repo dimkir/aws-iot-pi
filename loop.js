@@ -68,40 +68,48 @@ function loop(){
   publishFunction(); // this will republish full project
   // var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
 
- var filterTrueFalse = function(v){  return v ? 'true' : 'false' };
+  displayMetrics();
 
- // how to display all the properties... ?
- var propertiesToDisplay = {
-   'sht_09':    {   filter: filterTrueFalse   },
-   'pow_up_09': {},
-   'pow_dw_09': {},
-   'vsc_09' :   {}
- };
-
- var format_string = '';
- var elements = [];
-
- _.forOwn(propertiesToDisplay, function(opt, key){
-
-    format_string +=  '\t' + key + ': %5s';
-
-    elements.push( opt.filter ?  opt.filter(PROPERTIES[key]) : PROPERTIES[key]);
- });
- // displayStringFunction(format_string);
- var msg = vsprintf(format_string, elements);
- // var msg = sprintf("%8s %4d %4d %4d",
- //   PROPERTIES.sht_09 ? 'true' : 'false',
- //   PROPERTIES.pow_up_09,
- //   PROPERTIES.pow_dw_09,
- //   PROPERTIES.vsc_09
- //
- // );
+}
 
 
- displayStringFunction(msg);
-  // displayStringFunction(JSON.stringify(PROPERTIES));
-  winston.info(msg);
+function displayMetrics(){
+  var filterTrueFalse = function(v){  return v ? 'true' : 'false' };
 
+  // how to display all the properties... ?
+  var propertiesToDisplay = {
+    'sht_09':    {   filter: filterTrueFalse   },
+    'pow_up_09': {},
+    'pow_dw_09': {},
+    'vsc_09'   : {},
+    'vsc_08'   : {},
+    '_mgn_up_09': {},
+    '_mgn_dw_09': {}
+  };
+
+  var format_string = '';
+  var elements = [];
+
+  _.forOwn(propertiesToDisplay, function(opt, key){
+
+     format_string +=  '\t' + key + ': %5s';
+
+     elements.push( opt.filter ?  opt.filter(PROPERTIES[key]) : PROPERTIES[key]);
+  });
+  // displayStringFunction(format_string);
+  var msg = vsprintf(format_string, elements);
+  // var msg = sprintf("%8s %4d %4d %4d",
+  //   PROPERTIES.sht_09 ? 'true' : 'false',
+  //   PROPERTIES.pow_up_09,
+  //   PROPERTIES.pow_dw_09,
+  //   PROPERTIES.vsc_09
+  //
+  // );
+
+
+  displayStringFunction(msg);
+   // displayStringFunction(JSON.stringify(PROPERTIES));
+   winston.info(msg);
 }
 
 
