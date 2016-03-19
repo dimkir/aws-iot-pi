@@ -63,6 +63,8 @@ function setupWinston(){
 }
 
 function loop(){
+    //return;
+
 
   refreshMetrics();
   publishFunction(); // this will republish full project
@@ -115,13 +117,19 @@ function displayMetrics(){
 
 function refreshMetrics(){
 
+    // let's increase the multipliers to make charts look better.
+    _.forOwn(PROPERTIES_MULTIPLIERS, function(val,key){
 
-    // PROPERTIES.a =  rand();
-    // PROPERTIES.b =  rand();
+        if ( PROPERTIES_MULTIPLIERS[key] < 100 ){
+            PROPERTIES_MULTIPLIERS[key] += 1;
+        }
+    });
+
+
     _.forOwn(PROPERTIES, function(value, key){
       if ( _.startsWith(key,'_') ) return; // we skip the Interactive properties
 
-      PROPERTIES[key] = rand();
+      PROPERTIES[key] = rand(PROPERTIES_MULTIPLIERS[key]);
 
 
       // BOOLEAN PROPERTIES
@@ -151,9 +159,8 @@ function nextOffset(property){
 }
 
 
-function rand(){
-
-  return Math.round(Math.random() * 1000);
+function rand(mult){
+  return Math.round(Math.random() * mult);
 }
 
 function rand_boolean(){

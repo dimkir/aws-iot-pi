@@ -3,6 +3,7 @@ var tools = require('./tools');
 var sprintf = require('sprintf-js').sprintf;
 var winston = require('winston');
 var colors = require('colors');
+var _ = require('lodash');
 
 module.exports = {
 
@@ -12,6 +13,11 @@ module.exports = {
 
 var publishFunction = null;
 var displayStringFunction  = null;
+function log(s){
+    displayStringFunction(s);
+}
+
+var thingName = null;
 
 function __REGISTER_HANDLERS(thingShadows, options){
     if ( undefined === options.publishFunction ) throw 'Must specify function as second argument';
@@ -20,6 +26,7 @@ function __REGISTER_HANDLERS(thingShadows, options){
     displayStringFunction = options.displayStringFunction;
     if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
 
+    thingName = options.thingName;
 
     winston.add(
       winston.transports.File, {
@@ -33,8 +40,9 @@ function __REGISTER_HANDLERS(thingShadows, options){
     winston.remove(winston.transports.Console);
 
     // Code below just logs messages for info/debugging
-    thingShadows.on('status', on_status);
-    thingShadows.on('update', on_update); // we received an update
+    //thingShadows.on('status', on_status);
+    thingShadows.on('update', on_update); // we received an update // ??? what does it mean 'update'?
+    thingShadows.on('message', on_message);
 
     thingShadows.on('delta', on_delta); // delta is the key
 
@@ -51,12 +59,40 @@ function __REGISTER_HANDLERS(thingShadows, options){
 }
 
 
+
+function on_message(topic, payload){
+    //log(sprintf("--- on_message: [%s] payload [%s]", topic, JSON.stringify(payload)));
+    log(sprintf("--- on_message: [%s] payload [%s]", topic, payload.toString()));
+
+    if ( sprintf('things/%s/command', thingName) == topic ) {
+        var cmd = payload.toString();
+        log(sprintf("### Command [%s]", payload.toString()));
+
+        if ( 'recalibrate' === cmd ){
+            recalibrate();
+        }
+        else{
+            log("### Unknown command, only 'recalibrate' command is valid");
+        }
+    }
+
+}
+
+
+function recalibrate(){
+    _.forOwn(PROPERTIES_MULTIPLIERS, function(val,key){
+        PROPERTIES_MULTIPLIERS[key] = 20;
+
+    });
+
+}
+
 function on_status(thingName, stat, clientToken, stateObject) {
-  //  console.log(sprintf('*** received status [%s]  on [%s]. JSON: \n%s',
-  //             stat,
-  //             thingName,
-  //             tools.prettyfy(stateObject)
-  //           ));
+    log(sprintf('*** received status [%s]  on [%s]. JSON: \n%s',
+               stat,
+               thingName,
+               tools.prettyfy(stateObject)
+             ));
 }
 
 
@@ -107,33 +143,33 @@ function on_delta(thingName, stateObject){
   return;
 
 
-  //  here I should take into account what needs to be changed and
-
-  if ( stateObject.clientToken ){
-    if ( clientToken != LAST_CLIENT_TOKEN ){
-       console.warn(sprintf(
-          'Skipping delta with token [%s] because latest token we expect is [%s]',
-           stateObject.clientToken,
-           LAST_CLIENT_TOKEN
-         ));
-    }
-  }
-
-
-
-   var delta = stateObject.state;
-
-
-   if ( delta.hasOwnProperty('a') ){
-     PROPERTIES.a = delta.a;
-   }
+  ////  here I should take into account what needs to be changed and
+  //
+  //if ( stateObject.clientToken ){
+  //  if ( clientToken != LAST_CLIENT_TOKEN ){
+  //     console.warn(sprintf(
+  //        'Skipping delta with token [%s] because latest token we expect is [%s]',
+  //         stateObject.clientToken,
+  //         LAST_CLIENT_TOKEN
+  //       ));
+  //  }
+  //}
+  //
+  //
+  //
+  // var delta = stateObject.state;
+  //
+  //
+  // if ( delta.hasOwnProperty('a') ){
+  //   PROPERTIES.a = delta.a;
+  // }
 
 
 }
 
 function on_update(thingName, stateObject){
-  //  console.log('*** received update '+' on '+thingName+': '+
-  //                      tools.prettyfy(stateObject));
+    log('*** received update '+' on '+thingName+': '+
+                        tools.prettyfy(stateObject));
 }
 
 
@@ -143,25 +179,26 @@ function on_update(thingName, stateObject){
 
 
 function on_close(){
-  console.log('*** offline');
+  log('*** close');
+
 }
 
 function on_reconnect(){
-  console.log('*** offline');
+  log('*** reconnect');
 }
 
 function on_offline(){
-  console.log('*** offline');
+  log('*** offline');
 }
 
 
 
 
 function on_timeout(thingName, clientToken) {
-   console.log('*** received timeout for '+ clientToken)
+   log('*** received timeout for '+ clientToken)
 }
 
 
 function on_error(error) {
-   console.log('*** error', error);
+   log(sprintf('*** error %s', error));
  }

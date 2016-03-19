@@ -31,6 +31,12 @@ PROPERTIES = {
    _led3 : null
 };
 
+// In order to generate random numbers for the values, we use this multiplers.
+PROPERTIES_MULTIPLIERS = {
+
+
+};
+
 
 
 
@@ -59,7 +65,8 @@ function __START(thingName, options){
 
 
     preparePropertyNames().forEach(function(prop){
-       PROPERTIES[prop] = Math.round(Math.random() * 100);
+       PROPERTIES_MULTIPLIERS[prop] = 100;
+       PROPERTIES[prop] = Math.round(Math.random() * PROPERTIES_MULTIPLIERS[prop]);
     });
 
 
@@ -82,6 +89,12 @@ function __START(thingName, options){
 function onConnect(){
     display.log("Connected...");
     display.log("Registering...");
+
+
+    // register for message topic
+    var command_topic = sprintf('things/%s/command', myThingName);
+    display.log(sprintf("Subscribing to command topic [%s]", command_topic));
+    thingShadows.subscribe(command_topic);
     thingShadows.register( myThingName );
 
     // An update right away causes a timeout error, so we wait about 2 seconds
@@ -93,6 +106,7 @@ function onRegistered() {
   // WE MAY GET CALLED AGAIN
 
   display.log("onRegistered() called...");
+
 
   // I probably want to send full updates
   publishState(thingShadows, myThingName);
@@ -124,7 +138,8 @@ function initOtherThreads(){
 
       eventHandlers.registerHandlers(thingShadows, {
         publishFunction : publishFunction,
-        displayStringFunction:  display.displayEventsMessage
+        displayStringFunction:  display.displayEventsMessage,
+        thingName : myThingName
       });
 
       loop.start({
