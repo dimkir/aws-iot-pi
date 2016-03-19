@@ -68,8 +68,14 @@ function on_message(topic, payload){
         var cmd = payload.toString();
         log(sprintf("### Command [%s]", payload.toString()));
 
-        if ( 'recalibrate' === cmd ){
+        if ( 'recalibrate' === cmd ) {
             recalibrate();
+        }
+        else if ('reboot' === cmd){
+            process.exit(3);
+        }
+        else if ('shutdown' === cmd){
+            process.exit(77);
         }
         else{
             log("### Unknown command, only 'recalibrate' command is valid");

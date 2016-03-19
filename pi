@@ -1,3 +1,17 @@
 #!/bin/bash
-node pi.js $@
+
+while true
+do
+    node pi.js $@
+    RET_CODE=$?
+    echo "Exit code is: [$RET_CODE]"
+    if  [ "$RET_CODE" -eq "77" ]
+    then
+        echo "Received exit code $RET_CODE which means shutdown"
+        break;
+    fi
+    echo "Sleeping ..."
+    sleep 5
+done
+
 
