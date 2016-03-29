@@ -72,31 +72,36 @@ function on_message(topic, payloadBuffer){
 
     // we only care if this is actual command sent to us
     if ( _options.myCommandTopic == topic ) {
-          winston.info("Payload is of type " + Type(payloadBuffer) + ' and is: ' );
-          winston.info(payloadBuffer);
-          var payloadString = payloadBuffer.toString();
-
-          var payload;
-          if ( payloadString[0] == '{'){
-            // this can be actually jso
-            try{
-              payload = JSON.parse(payloadString); // TODO: this would crash maybe add error checking
-            }
-            catch(e){
-              var msg = sprintf('We received command message with payload, which started with "{" but could not be parsed as json [%s]', payloadString);
-              winston.error(msg);
-              log(msg);
-              return; // RETURN RETURN RETURN RETURN
-            }
-          }
-          else{
-            payload = payloadString;
-          }
-
-          var cmd = _.has(payload,'command') ?  payload.command : payload;
-          on_command(_options.thingName, cmd, payload);
+        _handleCommandMessage(payloadBuffer);
     }
 
+}
+
+
+function _handleCommandMessage(payloadBuffer){
+    winston.info("Payload is of type " + Type(payloadBuffer) + ' and is: ' );
+    winston.info(payloadBuffer);
+    var payloadString = payloadBuffer.toString();
+
+    var payload;
+    if ( payloadString[0] == '{'){
+        // this can be actually jso
+        try{
+            payload = JSON.parse(payloadString); // TODO: this would crash maybe add error checking
+        }
+        catch(e){
+            var msg = sprintf('We received command message with payload, which started with "{" but could not be parsed as json [%s]', payloadString);
+            winston.error(msg);
+            log(msg);
+            return; // RETURN RETURN RETURN RETURN
+        }
+    }
+    else{
+        payload = payloadString;
+    }
+
+    var cmd = _.has(payload,'command') ?  payload.command : payload;
+    on_command(_options.thingName, cmd, payload);
 }
 
 
