@@ -13,7 +13,7 @@ var args = process.argv.slice(2);
 
 // -------- DEFAULT OPTIONS --------
 var options = {
-   metric_loop_delay: 2000
+   //metric_loop_delay: 2000  // i remove this setting here, because now device intrinsically would have interval.
 
 };
 

@@ -32,6 +32,7 @@
     "jsonfile": "^2.2.3",
     "lodash": "^4.6.1",
     "perlin-noise": "git+https://github.com/andrewrk/node-perlin-noise.git",
+    "should": "^8.3.0",
     "sprintf-js": "^1.0.3",
     "type-of-is": "^3.4.0",
     "winston": "^2.2.0"

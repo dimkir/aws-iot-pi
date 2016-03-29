@@ -80,7 +80,7 @@ function __START(thingName, options){
     });
 
     // This will be called upon each connection
-    thingShadows.on('connect', onConnect);
+    thingShadows.on('connect', onConnect); // TODO: what happens if connect fails here?
 
 }
 
@@ -136,22 +136,26 @@ function onRegistered() {
 
 function initOtherThreads(){
 
-      var publishFunction = function(){
+    var publishFunction = function(){
         publishState(thingShadows, myThingName);
-      }
+    }
 
-      eventHandlers.registerHandlers(thingShadows, {
-        publishFunction : publishFunction,
-        displayStringFunction:  display.displayEventsMessage,
-        thingName : myThingName,
-        myCommandTopic : _myCommandTopic
-      });
-
-      loop.start({
+    // TODO: if delay is short - the first reported state may be triggered before the handlers are set...
+    loop.start({
         publishFunction: publishFunction,
         displayStringFunction : display.displayMetricsMessage,
         metric_loop_delay : startOptions.metric_loop_delay // can be undefined
-       });
+    });
+
+    eventHandlers.registerHandlers(thingShadows, {
+        publishFunction : publishFunction,
+        displayStringFunction:  display.displayEventsMessage,
+        thingName : myThingName,
+        myCommandTopic : _myCommandTopic,
+        metricLoop : loop
+    });
+
+
 }
 
 
@@ -194,6 +198,9 @@ function publishState(thingShadows, myThingName){
 
 
 
+// ------------------------------------------------------------------
+// ----------------- UTILITY FUNCTIONS   ----------------------------
+// ------------------------------------------------------------------
 
 function preparePropertyNames(){
   var freq = ['08','09','18','21','26'];

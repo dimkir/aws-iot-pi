@@ -19,10 +19,14 @@ var columns;
 var noise;
 var noise_index = 0;
 
-var metric_loop_delay = 3000;
+var metric_loop_delay = 30 * 1000; // 30 seconds we start with
 
 function _setMetricLoopDelay(delay){
   metric_loop_delay = delay;
+    if ( latestTimeout )
+    clearTimeout(latestTimeout);
+    loop();
+    //setTimeout(loop, metric_loop_delay);
 }
 
 var PROPERTY_OFFSETS = {
@@ -34,6 +38,7 @@ var PROPERTY_OFFSETS = {
 var publishFunction  = null;
 var displayStringFunction = null;
 
+var latestTimeout = null;
 
 function __START_LOOP(options){
     setupWinston();
@@ -49,7 +54,10 @@ function __START_LOOP(options){
     }
 
     noise = perlin.generatePerlinNoise(1000, 1, { amplitude: 0.5});
-    setInterval(loop, metric_loop_delay);
+    //throw sprintf('Upon starting loop metric loop  delay is %s', metric_loop_delay); // neither displayStringFunction, neither console.log worked
+    //setInterval(loop, metric_loop_delay);
+    //latestTimeout = setTimeout(loop, metric_loop_delay);
+    loop(); // this will run it for the first time and also would also setNext timer
 }
 
 function setupWinston(){
@@ -68,14 +76,18 @@ function setupWinston(){
 }
 
 function loop(){
-    //return;
 
+    //try{
+        refreshMetrics();
+        publishFunction(); // this will republish full project
+        // var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
 
-  refreshMetrics();
-  publishFunction(); // this will republish full project
-  // var msg = sprintf("%4s %4d %4d", PROPERTIES.a, PROPERTIES.b, PROPERTIES.c);
-
-  displayMetrics();
+        displayMetrics();
+    //}
+    //catch(e){
+        //winston.error(e);
+    //}
+    latestTimeout = setTimeout(loop, metric_loop_delay);
 
 }
 
@@ -147,6 +159,7 @@ function refreshMetrics(){
     PROPERTIES.a =  Math.round(100*noise[nextOffset('a')]);
     PROPERTIES.b =  Math.round(100*noise[nextOffset('b')]);
     PROPERTIES.c =  Math.round(100*noise[nextOffset('c')]);
+    PROPERTIES.metric_loop_delay = metric_loop_delay;
 
 }
 

@@ -6,6 +6,7 @@ var colors = require('colors');
 var jsonfile = require('jsonfile');
 var _ = require('lodash');
 var Type = require('type-of-is');
+var should = require('should');
 
 
 
@@ -15,36 +16,21 @@ module.exports = {
 
 };
 
-var publishFunction = null;
-var displayStringFunction  = null;
 function log(s){
-    displayStringFunction(s);
+    _options.displayStringFunction(s);
 }
 
-var thingName = null;
-var _options = {
+var _options = { };
 
-  myCommandTopic : null   // this is topic we can subscrige
-
-};
-
-/**
-*
-* var options
-*     options.myCommandTopic            <string>    Topic via which we receive commands.
-*     options.publishFunction           <function>  initiates publishing of the state
-*     options.displayStringFunction     <function>  allows event handler to display text info to console
-*/
 
 
 function __REGISTER_HANDLERS(thingShadows, options){
-    if ( undefined === options.publishFunction ) throw 'Must specify function as second argument';
-    publishFunction = options.publishFunction;
 
-    displayStringFunction = options.displayStringFunction;
-    if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
-
-    thingName = options.thingName;
+    options.should.have.property('myCommandTopic');         // <string>    Topic via which we receive commands.
+    options.should.have.property('publishFunction');        // <function>  initiates publishing of the state
+    options.should.have.property('displayStringFunction');  // <function>  allows event handler to display text info to console
+    options.should.have.property('thingName');              // <string>    name of the thing
+    options.should.have.property('metricLoop');             // <module>    allows to communicate with the metric loop
 
     _options = options;
 
@@ -108,7 +94,7 @@ function on_message(topic, payloadBuffer){
           }
 
           var cmd = _.has(payload,'command') ?  payload.command : payload;
-          on_command(thingName, cmd, payload);
+          on_command(_options.thingName, cmd, payload);
     }
 
 }
@@ -122,7 +108,12 @@ function on_command(thingName, command, payload){
        recalibrate :  __recalibrate,
        reboot      :  __reboot,
        shutdown    :  __shutdown,
-       logme       :  __logme
+       logme       :  __logme,
+        fastest     : __fastest,
+        faster      : __faster,
+        normal      : __normal,
+        slowest     : __slowest,
+        ping        : __ping
     };
 
     if ( ! _.has(allowed_commands, command) ){
@@ -149,6 +140,7 @@ function __recalibrate(){
 }
 
 
+
 function __reboot(){
     process.exit(3);
 }
@@ -165,6 +157,29 @@ function __logme(thingName, args){
   var fname =  sprintf('logs/commands/logme/%s-%s.json',  thingName, ts );
   jsonfile.writeFileSync( fname, args, { spaces: 2});
 }
+
+
+function __fastest(thingName, args){
+    _options.metricLoop.setMetricLoopDelay(250);
+}
+
+function __faster(thingName, args){
+    _options.metricLoop.setMetricLoopDelay(1000);
+}
+
+function __normal(){
+    _options.metricLoop.setMetricLoopDelay(30 * 1000);
+}
+
+function  __slowest(){
+    _options.metricLoop.setMetricLoopDelay(10 * 60 * 1000); // 10 minutes
+}
+
+
+function __ping(){
+    _options.publishFunction();
+}
+
 
 
 // --------------------------------------------------------
@@ -192,7 +207,7 @@ function on_delta(thingName, stateObject){
   var timestamp = new Date().getTime();
   var msg  = sprintf('*** [%d] received delta on [%s]', stateObject.timestamp, thingName);
   //console.log(colors.red(msg));
-  displayStringFunction(msg);
+  log(msg);
   winston.info(msg);
   winston.info(tools.prettyfy(stateObject));
 
@@ -204,7 +219,7 @@ function on_delta(thingName, stateObject){
      if ( !delta.hasOwnProperty(prop) ) {  winston.info(sprintf('Inside delta found not-own-property [%s]',prop));  continue; }
      var msg_update = sprintf('[%s] = [%s]',  prop, delta[prop] )
      //  console.log("From delta we got property to update " + colors.blue(msg_update));
-     displayStringFunction(sprintf("Delta: %s",  msg_update));
+     log(sprintf("Delta: %s",  msg_update));
      winston.info("From delta we got propety to update " + msg_update);
      // own property
      if ( 0 == prop.indexOf('_')){
@@ -219,7 +234,7 @@ function on_delta(thingName, stateObject){
      // should I update ALL of them together? Or one by one?
    }
 
-  publishFunction(); // let's publish whatever we changed.
+  _options.publishFunction(); // let's publish whatever we changed.
 
 
   return;
