@@ -10,7 +10,8 @@ var _ = require('lodash');
 
 module.exports = {
 
-  start : __START_LOOP
+  start : __START_LOOP,
+  setMetricLoopDelay : _setMetricLoopDelay
 
 };
 
@@ -19,6 +20,10 @@ var noise;
 var noise_index = 0;
 
 var metric_loop_delay = 3000;
+
+function _setMetricLoopDelay(delay){
+  metric_loop_delay = delay;
+}
 
 var PROPERTY_OFFSETS = {
   a : 0,
@@ -117,19 +122,16 @@ function displayMetrics(){
 
 function refreshMetrics(){
 
-    // let's increase the multipliers to make charts look better.
-    _.forOwn(PROPERTIES_MULTIPLIERS, function(val,key){
 
-        if ( PROPERTIES_MULTIPLIERS[key] < 100 ){
-            PROPERTIES_MULTIPLIERS[key] += 1;
-        }
-    });
+
+      _increaseMultipliers({ by: 1, upTo: 100});
+
 
 
     _.forOwn(PROPERTIES, function(value, key){
       if ( _.startsWith(key,'_') ) return; // we skip the Interactive properties
 
-      PROPERTIES[key] = rand(PROPERTIES_MULTIPLIERS[key]);
+      PROPERTIES[key] = randInRange(PROPERTIES_MULTIPLIERS[key]);
 
 
       // BOOLEAN PROPERTIES
@@ -149,6 +151,13 @@ function refreshMetrics(){
 }
 
 
+
+
+
+// ---------------------------------------------------------------------------------------
+// ---------------------------------- UTILITY FUNCTIONS ----------------------------------
+// ---------------------------------------------------------------------------------------
+
 function nextOffset(property){
    PROPERTY_OFFSETS[property]++;
    if ( PROPERTY_OFFSETS[property] >= noise.length ){
@@ -159,10 +168,27 @@ function nextOffset(property){
 }
 
 
-function rand(mult){
+
+function randInRange(mult){
   return Math.round(Math.random() * mult);
 }
 
+
+
 function rand_boolean(){
   return Math.random() > 0.5;
+}
+
+
+
+// function _increaseMultipliers({ by: 1, upTo: 100}){
+function _increaseMultipliers(options){
+  // let's increase the multipliers to make charts look better.
+
+  _.forOwn(PROPERTIES_MULTIPLIERS, function(val,key){
+
+      if ( PROPERTIES_MULTIPLIERS[key] < options.upTo ){
+          PROPERTIES_MULTIPLIERS[key] += options.by;
+      }
+  });
 }

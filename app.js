@@ -42,6 +42,7 @@ PROPERTIES_MULTIPLIERS = {
 
 
 
+
 LAST_CLIENT_TOKEN = null;
 
 // --------------------------------------------------------
@@ -86,13 +87,16 @@ function __START(thingName, options){
 /**
 * IMPORTANT: May be called several times (upon reconnect for example)
 */
+var _myCommandTopic = null;
+
 function onConnect(){
     display.log("Connected...");
     display.log("Registering...");
 
 
     // register for message topic
-    var command_topic = sprintf('things/%s/command', myThingName);
+    var command_topic = sprintf('doradus/things/%s/commands', myThingName);
+    _myCommandTopic = command_topic;
     display.log(sprintf("Subscribing to command topic [%s]", command_topic));
     thingShadows.subscribe(command_topic);
     thingShadows.register( myThingName );
@@ -139,7 +143,8 @@ function initOtherThreads(){
       eventHandlers.registerHandlers(thingShadows, {
         publishFunction : publishFunction,
         displayStringFunction:  display.displayEventsMessage,
-        thingName : myThingName
+        thingName : myThingName,
+        myCommandTopic : _myCommandTopic
       });
 
       loop.start({

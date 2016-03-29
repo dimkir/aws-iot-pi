@@ -3,7 +3,11 @@ var tools = require('./tools');
 var sprintf = require('sprintf-js').sprintf;
 var winston = require('winston');
 var colors = require('colors');
+var jsonfile = require('jsonfile');
 var _ = require('lodash');
+var Type = require('type-of-is');
+
+
 
 module.exports = {
 
@@ -18,6 +22,20 @@ function log(s){
 }
 
 var thingName = null;
+var _options = {
+
+  myCommandTopic : null   // this is topic we can subscrige
+
+};
+
+/**
+*
+* var options
+*     options.myCommandTopic            <string>    Topic via which we receive commands.
+*     options.publishFunction           <function>  initiates publishing of the state
+*     options.displayStringFunction     <function>  allows event handler to display text info to console
+*/
+
 
 function __REGISTER_HANDLERS(thingShadows, options){
     if ( undefined === options.publishFunction ) throw 'Must specify function as second argument';
@@ -27,6 +45,8 @@ function __REGISTER_HANDLERS(thingShadows, options){
     if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
 
     thingName = options.thingName;
+
+    _options = options;
 
     winston.add(
       winston.transports.File, {
@@ -60,38 +80,94 @@ function __REGISTER_HANDLERS(thingShadows, options){
 
 
 
-function on_message(topic, payload){
-    //log(sprintf("--- on_message: [%s] payload [%s]", topic, JSON.stringify(payload)));
-    log(sprintf("--- on_message: [%s] payload [%s]", topic, payload.toString()));
+function on_message(topic, payloadBuffer){
+    //log(sprintf("--- on_message: [%s] payload [%s]", topic, JSON.stringify(payload)));  // this probably is - in case it is json - then it is object
+    log(sprintf("--- on_message: [%s] payload [%s]", topic, payloadBuffer.toString()));
 
-    if ( sprintf('things/%s/command', thingName) == topic ) {
-        var cmd = payload.toString();
-        log(sprintf("### Command [%s]", payload.toString()));
+    // we only care if this is actual command sent to us
+    if ( _options.myCommandTopic == topic ) {
+          winston.info("Payload is of type " + Type(payloadBuffer) + ' and is: ' );
+          winston.info(payloadBuffer);
+          var payloadString = payloadBuffer.toString();
 
-        if ( 'recalibrate' === cmd ) {
-            recalibrate();
-        }
-        else if ('reboot' === cmd){
-            process.exit(3);
-        }
-        else if ('shutdown' === cmd){
-            process.exit(77);
-        }
-        else{
-            log("### Unknown command, only 'recalibrate' command is valid");
-        }
+          var payload;
+          if ( payloadString[0] == '{'){
+            // this can be actually jso
+            try{
+              payload = JSON.parse(payloadString); // TODO: this would crash maybe add error checking
+            }
+            catch(e){
+              var msg = sprintf('We received command message with payload, which started with "{" but could not be parsed as json [%s]', payloadString);
+              winston.error(msg);
+              log(msg);
+              return; // RETURN RETURN RETURN RETURN
+            }
+          }
+          else{
+            payload = payloadString;
+          }
+
+          var cmd = _.has(payload,'command') ?  payload.command : payload;
+          on_command(thingName, cmd, payload);
     }
 
 }
 
 
-function recalibrate(){
+function on_command(thingName, command, payload){
+
+    log(sprintf("*** Received command [%s]", command));
+
+    var allowed_commands = {
+       recalibrate :  __recalibrate,
+       reboot      :  __reboot,
+       shutdown    :  __shutdown,
+       logme       :  __logme
+    };
+
+    if ( ! _.has(allowed_commands, command) ){
+      var propertiesToString = function(obj){ var s = '';  _.forOwn(obj, function(v,k){  s += ',' + k; }); return s; };
+      var known_commands_str = propertiesToString(allowed_commands);
+      log(sprintf("### Unknown command '%s', only commands [%s] are known." , command, known_commands_str));
+      return;
+    }
+
+    allowed_commands[command](thingName, payload);
+
+}
+
+// -------------------------------------------------------
+// ------------------ COMMANDS ---------------------------
+// -------------------------------------------------------
+
+function __recalibrate(){
     _.forOwn(PROPERTIES_MULTIPLIERS, function(val,key){
         PROPERTIES_MULTIPLIERS[key] = 20;
 
     });
 
 }
+
+
+function __reboot(){
+    process.exit(3);
+}
+
+
+function __shutdown(){
+    process.exit(77);
+}
+
+
+function __logme(thingName, args){
+  // here I want to log commands.
+  var ts = Date.now();
+  var fname =  sprintf('logs/commands/logme/%s-%s.json',  thingName, ts );
+  jsonfile.writeFileSync( fname, args, { spaces: 2});
+}
+
+
+// --------------------------------------------------------
 
 function on_status(thingName, stat, clientToken, stateObject) {
     log(sprintf('*** received status [%s]  on [%s]. JSON: \n%s',
