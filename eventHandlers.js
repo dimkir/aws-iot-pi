@@ -22,6 +22,8 @@ function log(s){
 
 var _options = { };
 
+const SECONDS = 1000;
+const MINUTES = 60 * SECONDS;
 
 
 function __REGISTER_HANDLERS(thingShadows, options){
@@ -165,19 +167,19 @@ function __logme(thingName, args){
 
 
 function __fastest(thingName, args){
-    _options.metricLoop.setMetricLoopDelay(250);
+    _options.metricLoop.setMetricLoopDelay(250,             20 * SECONDS );
 }
 
 function __faster(thingName, args){
-    _options.metricLoop.setMetricLoopDelay(1000);
+    _options.metricLoop.setMetricLoopDelay(1 * SECONDS,     30 * SECONDS);
 }
 
 function __normal(){
-    _options.metricLoop.setMetricLoopDelay(30 * 1000);
+    _options.metricLoop.setMetricLoopDelay(30 * SECONDS,    20 * MINUTES);
 }
 
 function  __slowest(){
-    _options.metricLoop.setMetricLoopDelay(10 * 60 * 1000); // 10 minutes
+    _options.metricLoop.setMetricLoopDelay(10 * MINUTES,    60 * MINUTES); // 10 minutes
 }
 
 

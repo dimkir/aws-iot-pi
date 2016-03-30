@@ -19,15 +19,40 @@ var columns;
 var noise;
 var noise_index = 0;
 
-var metric_loop_delay = 30 * 1000; // 30 seconds we start with
 
-function _setMetricLoopDelay(delay){
-  metric_loop_delay = delay;
+const SECONDS = 1000;
+const MINUTES = 60 * SECONDS;
+
+
+var metric_loop_delay = 30 * SECONDS; // 30 seconds we start with
+
+var restoringTimeout = null;
+
+var restore_at_timestamp = null;
+
+const _default_metric_loop_delay = 5 * MINUTES;
+
+function _setMetricLoopDelay(delay, restore_after_millis){
+    metric_loop_delay = delay;
     if ( latestTimeout )
-    clearTimeout(latestTimeout);
+        clearTimeout(latestTimeout);
+
+    if ( restoringTimeout ) clearTimeout(restoringTimeout);
+    restoringTimeout= setTimeout(function restoreDelayToDefault(){
+        metric_loop_delay = _default_metric_loop_delay;
+        if ( latestTimeout ) clearTimeout(latestTimeout);
+        restore_at_timestamp = null;
+        loop();
+
+    }, restore_after_millis); // this will actually set timeout
+    restore_at_timestamp = Date.now() + restore_after_millis;
+
     loop();
+
     //setTimeout(loop, metric_loop_delay);
 }
+
+
 
 var PROPERTY_OFFSETS = {
   a : 0,
@@ -160,6 +185,8 @@ function refreshMetrics(){
     PROPERTIES.b =  Math.round(100*noise[nextOffset('b')]);
     PROPERTIES.c =  Math.round(100*noise[nextOffset('c')]);
     PROPERTIES.metric_loop_delay = metric_loop_delay;
+    PROPERTIES.restore_at_timestamp = restore_at_timestamp;
+    PROPERTIES.custom_delay_left_millis = restore_at_timestamp !== null ? restore_at_timestamp -  Date.now() : null;
 
 }
 

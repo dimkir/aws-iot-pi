@@ -70,13 +70,26 @@ function setupDisplay(myThingName){
                 }
             }
 
-            boxState.setContent(sprintf("LED-1 [%s]  \t   LED-2 [%s]     \t    LED-3  [%s]\n  MGain 900Mhz Up [%s] \t MGain 900Mhz Down [%s]",
+            boxState.setContent(sprintf(
+                "LED-1 [%s]  \t   LED-2 [%s]     \t    LED-3  [%s]\n" +
+                "MGain 900Mhz Up [%s] \t MGain 900Mhz Down [%s]\n" +
+                "\n" +
+                "Metric Loop Delay [%s]\n" +
+                "Restore At Timestamp [%s]\n" +
+                "Custom Delay Left Millis [%s]\n",
                 wrapColor(state._led1),
                 wrapColor(state._led2),
                 wrapColor(state._led3),
                 sprintf("{blue-bg}%5s{/blue-bg}",state._mgn_up_09),
-                sprintf("{blue-bg}%5s{/blue-bg}",state._mgn_dw_09)
+                sprintf("{blue-bg}%5s{/blue-bg}",state._mgn_dw_09),
+                sprintf("{yellow-bg}%s{/yellow-bg}",state.metric_loop_delay),
+                sprintf("{yellow-bg}%s{/yellow-bg}",state.restore_at_timestamp),
+                sprintf("{yellow-bg}%s{/yellow-bg}",state.custom_delay_left_millis)
             ));
+
+            //state.metric_loop_delay
+            //state.restore_at_timestamp
+            //state.custom_delay_left_millis
             screen.render();
         }
 
