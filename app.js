@@ -10,6 +10,7 @@ var sprintf = require('sprintf-js').sprintf;
 
 
 var disp = require('./utils/display');
+var megaConverter = require('./converters/mega_properties.js');
 
 module.exports = {
     start : __START
@@ -113,7 +114,7 @@ function onRegistered() {
 
 
   // I probably want to send full updates
-  publishState(thingShadows, myThingName);
+  publishState(thingShadows, myThingName, megaConverter);
 
   // this publish - it doesn't really fit the picture, it encapsulates "publishing global state" - basically
   // it simply published global state... but then parameters make no sense: why specify services and thing name,
@@ -137,7 +138,7 @@ function onRegistered() {
 function initOtherThreads(){
 
     var publishFunction = function(){
-        publishState(thingShadows, myThingName);
+        publishState(thingShadows, myThingName, megaConverter);
     }
 
     // TODO: if delay is short - the first reported state may be triggered before the handlers are set...
@@ -159,7 +160,7 @@ function initOtherThreads(){
 }
 
 
-function publishState(thingShadows, myThingName){
+function publishState(thingShadows, myThingName, converter){
   // console.log("======>>>> Updating state:");
 
 
@@ -184,7 +185,7 @@ function publishState(thingShadows, myThingName){
   // console.log(tools.prettyfy(payload));
   // console.log("**************************************************");
 
-
+  payload = (undefined !== converter) ? converter.convert(payload) : payload;
   var clientToken = thingShadows.update(myThingName, payload);
   winston.log(sprintf('Client token %s',clientToken))
   LAST_CLIENT_TOKEN = clientToken;
@@ -217,6 +218,9 @@ function preparePropertyNames(){
 
       readingNames.push(sprintf('osc_up_%s',frq));
       readingNames.push(sprintf('osc_dw_%s',frq));
+
+      readingNames.push(sprintf('neartower_dw_%s',frq));
+      readingNames.push(sprintf('neartower_up_%s',frq));
 
 
       // Boolean values
