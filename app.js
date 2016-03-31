@@ -145,7 +145,7 @@ function initOtherThreads(){
     loop.start({
         publishFunction: publishFunction,
         displayStringFunction : display.displayMetricsMessage,
-        metric_loop_delay : startOptions.metric_loop_delay // can be undefined
+        default_metric_loop_delay : startOptions.default_metric_loop_delay // can be undefined
     });
 
     eventHandlers.registerHandlers(thingShadows, {
@@ -227,6 +227,8 @@ function preparePropertyNames(){
       readingNames.push(sprintf('sht_%s',frq));
 
       readingNames.push(sprintf('swc_up_%s',frq));
+
+      readingNames.push(sprintf('orange_%s',frq));
 
 
       // Interactive values

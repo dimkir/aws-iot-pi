@@ -13,7 +13,7 @@ var args = process.argv.slice(2);
 
 // -------- DEFAULT OPTIONS --------
 var options = {
-   //metric_loop_delay: 2000  // i remove this setting here, because now device intrinsically would have interval.
+   //default_metric_loop_delay: 2000  // i remove this setting here, because now device intrinsically would have interval.
 
 };
 
@@ -21,7 +21,7 @@ var options = {
 if ( args.length < 1 ){
    console.log('Please specify at least one command line argument');
    console.log(sprintf('Usage:     %s   <thing-name>   [<metric_loop_delay>] ', process.argv[0]));
-   console.log(sprintf('<metric_loop_delay> in milliseconds. Default values is %d.', options.metric_loop_delay ));
+   console.log(sprintf('<metric_loop_delay> in milliseconds. If no parameter specified the device intrinsic default interval will be used' ));
    process.exit(1);
 }
 
@@ -29,7 +29,7 @@ if ( args.length < 1 ){
 
 var myThingName = args[0];
 if ( args.length >= 2 ){
-  options.metric_loop_delay = args[1];
+  options.default_metric_loop_delay = args[1];
 }
 
 console.log("Starting virtual device with thing name: [" + myThingName + ']');

@@ -3,6 +3,7 @@ var winston = require('winston');
 var sprintf = require('sprintf-js').sprintf;
 var _ = require('lodash');
 var jsonfile = require('jsonfile');
+var millis2human = require('../utils/millis2human');
 
 module.exports = {
 
@@ -47,11 +48,11 @@ function _convert(payload){
 
     // TODO: this needs to get a source for it's data
     result.ORANGE = sprintf('%s,%s,%s,%s,%s',
-        false ? '1' : '0',
-        false ? '1' : '0',
-        true  ? '1' : '0',
-        true  ? '1' : '0',
-        true  ? '1' : '0'
+        reported.orange_08 ? '1' : '0',
+        reported.orange_09 ? '1' : '0',
+        reported.orange_18 ? '1' : '0',
+        reported.orange_21 ? '1' : '0',
+        reported.orange_26 ? '1' : '0'
     );
 
     // ----------------------------------------
@@ -135,7 +136,7 @@ function _convert(payload){
 
 
     //result._CLK = 4; // TODO: remove this clock from there
-    result.VERSION = 'mega-v1';
+    result['@VERSION'] = 'mega-v1';
 
      // ----------------------------------------
      // -----------  DEBUG     -----------------
@@ -144,6 +145,12 @@ function _convert(payload){
     result['@METRIC_LOOP_DELAY'] = reported.metric_loop_delay;
     result['@RESTORE_AT_TIMESTAMP'] = reported.restore_at_timestamp;
     result['@CUSTOM_DELAY_LEFT_SECS'] = reported.custom_delay_left_millis;
+
+    result.FAST_SAMPLING_SPEED          = millis2human.toHuman(reported.metric_loop_delay);
+    result.FAST_SAMPLING_COUNTDOWN_SECS = millis2human.toSeconds(reported.custom_delay_left_millis);
+
+    result._DEFAULT_SAMPLING_SPEED      = millis2human.toHuman(reported._default_sampling_speed);
+
 
     var shadow_message = {
         state: {

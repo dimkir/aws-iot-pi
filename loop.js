@@ -24,13 +24,15 @@ const SECONDS = 1000;
 const MINUTES = 60 * SECONDS;
 
 
-var metric_loop_delay = 30 * SECONDS; // 30 seconds we start with
 
 var restoringTimeout = null;
 
 var restore_at_timestamp = null;
 
-const _default_metric_loop_delay = 5 * MINUTES;
+//const _default_metric_loop_delay = 5 * MINUTES;
+var _default_metric_loop_delay = 2 * SECONDS;
+//var metric_loop_delay = 2 * SECONDS; // 30 seconds we start with (that is something we're ok with).
+var metric_loop_delay = _default_metric_loop_delay; // 30 seconds we start with (that is something we're ok with).
 
 function _setMetricLoopDelay(delay, restore_after_millis){
     metric_loop_delay = delay;
@@ -74,8 +76,9 @@ function __START_LOOP(options){
     displayStringFunction = options.displayStringFunction;
     if ( undefined === displayStringFunction ) throw 'Please specify options.displayStringFunction when calling start()';
 
-    if ( options.metric_loop_delay ){
-      metric_loop_delay = options.metric_loop_delay;
+    if ( options.default_metric_loop_delay ){
+        _default_metric_loop_delay = options.default_metric_loop_delay;
+        metric_loop_delay = _default_metric_loop_delay;
     }
 
     noise = perlin.generatePerlinNoise(1000, 1, { amplitude: 0.5});
@@ -174,6 +177,7 @@ function refreshMetrics(){
       // BOOLEAN PROPERTIES
       if ( _.startsWith(key,'swc_up_')
         || _.startsWith(key, 'sht_')
+        || _.startsWith(key, 'orange_')
       ) {
          PROPERTIES[key] = rand_boolean();
       }
@@ -187,6 +191,7 @@ function refreshMetrics(){
     PROPERTIES.metric_loop_delay = metric_loop_delay;
     PROPERTIES.restore_at_timestamp = restore_at_timestamp;
     PROPERTIES.custom_delay_left_millis = restore_at_timestamp !== null ? restore_at_timestamp -  Date.now() : null;
+    PROPERTIES._default_sampling_speed = _default_metric_loop_delay;
 
 }
 
