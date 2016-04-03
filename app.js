@@ -96,7 +96,7 @@ function onConnect(){
 
 
     // register for message topic
-    var command_topic = sprintf('doradus/things/%s/commands', myThingName);
+    var command_topic = sprintf('doradus/things/%s/command', myThingName);
     _myCommandTopic = command_topic;
     display.log(sprintf("Subscribing to command topic [%s]", command_topic));
     thingShadows.subscribe(command_topic);
