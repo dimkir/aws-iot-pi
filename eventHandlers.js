@@ -33,6 +33,7 @@ function __REGISTER_HANDLERS(thingShadows, options){
     options.should.have.property('displayStringFunction');  // <function>  allows event handler to display text info to console
     options.should.have.property('thingName');              // <string>    name of the thing
     options.should.have.property('metricLoop');             // <module>    allows to communicate with the metric loop
+    options.should.have.property('feedbackService');        // <module>    allows to publish feedback back to the user
 
     _options = options;
 
@@ -103,7 +104,8 @@ function _handleCommandMessage(payloadBuffer){
     }
 
     var cmd = _.has(payload,'command') ?  payload.command : payload;
-    on_command(_options.thingName, cmd, payload);
+
+    on_command(_options.thingName, cmd.toLowerCase(), payload);
 }
 
 
@@ -112,21 +114,27 @@ function on_command(thingName, command, payload){
     log(sprintf("*** Received command [%s]", command));
 
     var allowed_commands = {
-       recalibrate :  __recalibrate,
-       reboot      :  __reboot,
-       shutdown    :  __shutdown,
-       logme       :  __logme,
-        fastest     : __fastest,
-        faster      : __faster,
-        normal      : __normal,
-        slowest     : __slowest,
-        ping        : __ping
+       recalibrate            :  __recalibrate,
+       reboot                 :  __reboot,
+       shutdown               :  __shutdown,
+       logme                  :  __logme,
+       fastest                : __fastest,
+       faster                 : __faster,
+       normal                 : __normal,
+       slowest                : __slowest,
+       ping                   : __ping,
+       start_fast_sampling    : __start_fast_sampling,
+       "250ms"                : __250ms
+
+
     };
 
     if ( ! _.has(allowed_commands, command) ){
       var propertiesToString = function(obj){ var s = '';  _.forOwn(obj, function(v,k){  s += ',' + k; }); return s; };
       var known_commands_str = propertiesToString(allowed_commands);
-      log(sprintf("### Unknown command '%s', only commands [%s] are known." , command, known_commands_str));
+      var errorMsg =  sprintf("### Unknown command '%s', only commands [%s] are known." , command, known_commands_str);
+      log(errorMsg);
+      _options.feedbackService.publishFailure(thingName, errorMsg);
       return;
     }
 
@@ -187,6 +195,46 @@ function __ping(){
     _options.publishFunction();
 }
 
+function __250ms(thingName){
+  __start_fast_sampling(thingName); // would go for default period
+}
+
+function __start_fast_sampling(thingName, args){
+
+   args = args || {};
+   var fast_sampling_speed        = (args.FAST_SAMPLING_SPEED || "250ms").toLowerCase();
+   var fast_sampling_window_secs  = args.FAST_SAMPLING_WINDOW_SECS  || 30;
+
+
+   var spd;
+
+   switch(fast_sampling_speed){
+      case '250ms':
+          spd = 250;
+          break;
+      case '1s':
+          spd = 1000;
+          break;
+      default:
+          // I should log an error
+          var errorMsg = sprintf('Start fast sampling command only supports 250ms and 1s parameters. You supplied [%s]', fast_sampling_speed);
+          log(errorMsg);
+          _options.feedbackService.publishFailure(thingName, { error: errorMsg });
+          return;
+
+   }
+
+
+   if ( fast_sampling_window_secs < 10 || fast_sampling_window_secs > 900 ){
+     var errorMsg = sprintf('Start fast sampling command supports windows from 10 to 900 seconds(10mins). You have supplied (%s)', fast_sampling_window_secs);
+     log(errorMsg);
+     _options.feedbackService.publishFailure(thingName, { error: errorMsg });
+     return;
+   }
+
+   log(sprintf('Setting metricLoopDelay(%s millis, %s seconds)', spd, fast_sampling_window_secs));
+   _options.metricLoop.setMetricLoopDelay( spd, fast_sampling_window_secs * SECONDS);
+}
 
 
 // --------------------------------------------------------

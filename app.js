@@ -7,6 +7,10 @@ var eventHandlers = require('./eventHandlers');
 var loop  = require('./loop');
 var winston = require('winston');
 var sprintf = require('sprintf-js').sprintf;
+var YAML  = require('yamljs');
+var _     = require('lodash');
+
+var feedbackService = require('./feedbackService');
 
 
 var disp = require('./utils/display');
@@ -54,6 +58,7 @@ var alreadyInitialized = false;
 // onRegistered or reRegistered...
 var display = null;
 var thingShadows = null;
+
 var myThingName = null;
 var startOptions = {};
 
@@ -82,6 +87,15 @@ function __START(thingName, options){
 
     // This will be called upon each connection
     thingShadows.on('connect', onConnect); // TODO: what happens if connect fails here?
+
+    // read yaml
+    var config  = YAML.load('config.yml');
+
+    var feedbackServiceOptions = {};
+    _.assign(feedbackServiceOptions, config.feedbackService);
+    feedbackServiceOptions.shadowService = thingShadows;
+
+    feedbackService.init(feedbackServiceOptions);
 
 }
 
@@ -153,7 +167,8 @@ function initOtherThreads(){
         displayStringFunction:  display.displayEventsMessage,
         thingName : myThingName,
         myCommandTopic : _myCommandTopic,
-        metricLoop : loop
+        metricLoop : loop,
+        feedbackService : feedbackService
     });
 
 

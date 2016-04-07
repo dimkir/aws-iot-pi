@@ -47,7 +47,12 @@ function setupDisplay(myThingName){
     };
     return {
         displayMetricsMessage : function(s){
-            boxWithMetrics.insertLine(0, s);
+            var l = boxWithMetrics.getLines().length;
+            if ( l > 20 ){
+              boxWithMetrics.deleteTop();
+            }
+            //boxWithMetrics.insertLine(0, s);
+            boxWithMetrics.pushLine(s);
             screen.render();
         },
         displayConsoleMessage: log,
@@ -95,4 +100,3 @@ function setupDisplay(myThingName){
 
     };
 }
-
